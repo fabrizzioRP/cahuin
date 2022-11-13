@@ -30,6 +30,7 @@
 
 <script>
 import { defineAsyncComponent } from "vue";
+import backend from "../../../api/axios_config";
 export default {
   name: "SignUp",
   components: {
@@ -51,18 +52,29 @@ export default {
     }
   },
   methods: {
-    submitForm(e) {
+    async submitForm(e) {
       e.preventDefault();
 
-      console.log(this.accountcode);
-      console.log(this.username);
-      console.log(this.password);
+      const data = {
+        accountcode: this.accountcode,
+        username: this.username,
+        password: this.password,
+      };
 
-      // TODO: isWrongCreds call to true if credentials is wrong.
-      // TODO: aqui hacer la verificación SI es un admin o cliente
-      this.$router.push({ name: "login" });
-      // this.$router.push({ name: "client-registro" });
+      try {
+        const resp = await backend.post("/auth/signup", data, {
+          headers: "Content-Type: application/json",
+        });
 
+        if (resp.data.success === "true") {
+          this.$router.push({ name: "login" });
+        } else {
+          console.log("Something went wrong");
+        }
+      } catch (error) {
+        this.isWrongCreds = true;
+        setTimeout(() => this.isWrongCreds = false, 2000);
+      }
     }
   }
 }

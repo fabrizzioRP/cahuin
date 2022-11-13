@@ -37,6 +37,7 @@
 
 <script>
 import { defineAsyncComponent } from "vue";
+import backend from "@/api/axios_config";
 
 const propiedades = [
   { label: "Nombre", name: "nombre", etiqueta: "input", type: "text", placeholder: "claro" },
@@ -56,9 +57,9 @@ export default {
     ModalDelete: defineAsyncComponent(() => import(/* webpackChunkName: "ModalDelete" */ "../components/ModalDelete.vue")),
     ModalEdit: defineAsyncComponent(() => import(/* webpackChunkName: "ModalEdit" */ "../components/ModalEdit.vue")),
   },
-  created() {
-    this.allClientes = this.getAllClients();
-    this.typesProve = this.allTypesOfProve();
+  async created() {
+    this.allClientes = await this.getAllClients();
+    this.typesProve = await this.allTypesOfProve();
     this.propsClient = propiedades;
     this.headers = ["ID", "Account ID", "Nombre", "Sip Host", "Sip Config", "Valor Fijo", "Valor Movil", "Proveedor"];
   },
@@ -78,10 +79,21 @@ export default {
     };
   },
   methods: {
-    getAllClients() {
-      // TODO: fetch endpoint
-      const data = require("../../../data/cliente.json");
-      return data;
+    async getAllClients() {
+      const format = [];
+      const { data } = await backend.get("/cliente");
+      data.forEach(item => format.push({
+        id: item.cliente_id,
+        accountid: item.accountcode,
+        nombre: item.cliente_nombre,
+        siphost: item.sip_host,
+        sipconfig: item.sip_config,
+        valorfijo: item.valor_fijo,
+        valormovil: item.valor_movil,
+        proveedor: item.proveedor_nombre,
+      }));
+
+      return format;
     },
     createClient(data, iscorrect) {
       this.validateCli = iscorrect;
@@ -102,12 +114,11 @@ export default {
       // TODO: realizar peticion al endpoint DELETE
       console.log(id);
     },
-    allTypesOfProve() {
-      // TODO: fetch endpoint
-      let emptyProve = [];
-      const actualData = require("../../../data/proveedor.json");
-      actualData.forEach(item => emptyProve.push({ id: item.id, nombre: item.nombre }));
-      return emptyProve;
+    async allTypesOfProve() {
+      let typesProve = [];
+      const { data } = await backend.get("/proveedor");
+      data.forEach(item => typesProve.push({ id: item.proveedor_id, nombre: item.proveedor_nombre }));
+      return typesProve;
     },
     receiveUpdatedEvent(data) {
       this.selectedInfoEdi = data;

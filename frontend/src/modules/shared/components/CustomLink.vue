@@ -9,6 +9,7 @@
 </template>
 
 <script>
+import backend from "../../../api/axios_config";
 export default {
   name: "CustomLink",
   props: {

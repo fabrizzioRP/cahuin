@@ -50,7 +50,6 @@
 </template>
 
 <script>
-
 export default {
   props: {
     title: {
@@ -71,9 +70,7 @@ export default {
     onSubmit(e) {
       e.preventDefault();
 
-      const data = {
-        id: Math.floor(Math.random() * 100),
-      };
+      let data = {};
 
       if (this.title === 'Cliente') {
         data['accountid'] = Math.floor(Math.random() * 10000);
@@ -90,7 +87,6 @@ export default {
       const isCorrect = 'success';
       console.table(data);
 
-      // TODO: fetch endpoint
       this.$emit('create-event', data, isCorrect);
 
       for (let i = 0; i < this.propiedades.length; i++) {

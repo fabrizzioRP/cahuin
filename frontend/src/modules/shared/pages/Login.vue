@@ -1,5 +1,4 @@
 <template>
-  <!-- TODO: BANNER EN CASO CREDENCIALES ERRONEAS -->
   <CustomBanner v-if="isWrongCreds" msg="Your Credentials is wrong, Try Again" typeMsg="error" />
 
   <div class="container">

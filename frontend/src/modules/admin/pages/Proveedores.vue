@@ -28,13 +28,14 @@
     <!-- COMIENZO DE LOS MODALS -->
     <ModalEdit :title="title" :actualValues="selectedInfoEdi" :propiedades="propsProve"
       @updated-event="updateProveedor" />
-    <ModalDelete :title="title" :info="selectedInfoDel" v-on:delete-event="deleteProveedor" />
+    <ModalDelete :title="title" :info="selectedInfoDel" @delete-event="deleteProveedor" />
     <!-- FIN COMIENZO DE LOS MODALS -->
   </div>
 </template>
 
 <script>
 import { defineAsyncComponent } from 'vue';
+import backend from '@/api/axios_config';
 
 const propiedades = [
   { label: "Nombre", name: "nombre", etiqueta: "input", type: "text", placeholder: "claro" },
@@ -53,8 +54,8 @@ export default {
     ModalDelete: defineAsyncComponent(() => import(/* webpackChunkName: "ModalDelete" */ "../components/ModalDelete.vue")),
     ModalEdit: defineAsyncComponent(() => import(/* webpackChunkName: "ModalEdit" */ "../components/ModalEdit.vue")),
   },
-  created() {
-    this.allProveedors = this.getAllProveedors();
+  async created() {
+    this.allProveedors = await this.getAllProveedors();
     this.propsProve = propiedades;
     this.headers = ["ID", "Nombre", "Sip Host", "Sip Config", "Valor Fijo", "Valor Movil"];
   },
@@ -73,21 +74,45 @@ export default {
     };
   },
   methods: {
-    getAllProveedors() {
-      // TODO: fetch endpoint
-      const data = require("../../../data/proveedor.json");
-      return data;
+    async getAllProveedors() {
+      try {
+        const format = [];
+        const { data } = await backend.get("/proveedor");
+        data.forEach(item => format.push({
+          id: item.proveedor_id,
+          nombre: item.proveedor_nombre,
+          siphost: item.sip_host,
+          sipconfig: item.sip_config,
+          valorfijo: item.valor_fijo,
+          valormovil: item.valor_movil,
+        }));
+        return format;
+      } catch (error) {
+        console.log(error.response);
+      }
     },
-    createProveedor(data, status) {
-      this.validateProve = status;
-      this.validateMsg = status ? 'Proveedor creado correctamente' : 'No se pudo crear el Proveedor';
+    async createProveedor(data, status) {
+      try {
+        this.launchBanner(status, "creado");
 
-      setTimeout(() => {
-        this.validateProve = "";
-        this.validateMsg = "";
-      }, 5000);
+        const response = await backend.post("/proveedor", data, {
+          headers: "Content-Type: application/json",
+        });
 
-      this.allProveedors = [...this.allProveedors, data];
+        const format = {
+          id: response.data.proveedor_id,
+          nombre: response.data.proveedor_nombre,
+          siphost: response.data.sip_host,
+          sipconfig: response.data.sip_config,
+          valorfijo: response.data.valor_fijo,
+          valormovil: response.data.valor_movil,
+        };
+
+        this.allProveedors = [...this.allProveedors, format];
+      } catch (error) {
+        this.launchBanner("error", "crear");
+        console.log(error.response);
+      }
     },
     updateProveedor(data) {
       // TODO: llamar al endpoint UPDATE
@@ -95,9 +120,15 @@ export default {
 
       this.refreshValidate;
     },
-    deleteProveedor(id) {
-      // TODO: llamar al endpint DELETE
-      console.log(id);
+    async deleteProveedor(id) {
+      try {
+        const { data } = await backend.delete(`/proveedor/${id}`);
+        this.allProveedors = this.allProveedors.filter(item => item.id != data.proveedor_id);
+        this.launchBanner("success", "Actualizado");
+      } catch (error) {
+        this.launchBanner("error", "Actualizar");
+        console.log(error.response);
+      }
     },
     receiveUpdatedEvent(data) {
       this.selectedInfoEdi = data;
@@ -105,6 +136,15 @@ export default {
     receiveDeleteEvent(data) {
       this.selectedInfoDel = data;
     },
+    launchBanner(status, accion) {
+      this.validateProve = status;
+      this.validateMsg = status ? `Proveedor ${accion} correctamente` : `No se pudo ${accion} el Proveedor`;
+
+      setTimeout(() => {
+        this.validateProve = "";
+        this.validateMsg = "";
+      }, 3000);
+    }
   },
 }
 </script>
