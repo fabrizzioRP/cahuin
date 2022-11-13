@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  # backend
+  backend:
+    build: ./backend
+    depends_on:
+      - postgres
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/backend
+      - ./backend/node_modules:/backend/node_modules
+    networks:
+      - cahuin-net
+  # Postgres
+  postgres:
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=loga22
+      - POSTGRES_DB=cahuin
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./backend/src/database/scripts/script_cahuin.sql:/docker-entrypoint-initdb.d/script_cahuin.sql
+      - /Users/fabrizzio/Documents/workspace-local/logaritmo-projects/volumes/postgres-vol:/var/lib/postgresql/data
+    networks:
+      - cahuin-net
+
+networks:
+  cahuin-net:
+    name: cahuin-net
