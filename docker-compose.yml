@@ -1,6 +1,18 @@
 version: '3.8'
 
 services:
+  # frontend
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./frontend:/frontend
+      - ./frontend/node_modules:/frontend/node_modules
+    networks:
+      - cahuin-net
   # backend
   backend:
     build: ./backend
